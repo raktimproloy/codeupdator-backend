@@ -1,52 +1,3 @@
-// const mongoose = require("mongoose")
-// const validator = require("validator")
-
-// const clientUserSchema = mongoose.Schema({
-//     full_name:{
-//       type: String,
-//       required: "Your firstname is required",
-//       max: 25,
-//     },
-//     username:{
-//       type: String,
-//       required: true,
-//       unique: true,
-//       lowercase: true,
-//       trim: true,
-//     },
-//     email:{
-//       type: String,
-//       required: true,
-//       unique: true,
-//       lowercase: true,
-//       trim: true,
-//       validate: [validator.isEmail, 'Please provide a valid email address']
-//     },
-//     password:{
-//       type: String,
-//       // required: true,
-//       default: null
-//     },
-//     profile_image:{
-//       type: String,
-//       default: null
-//     },
-//     isDark:{
-//       type: Boolean,
-//       default: false,
-//     },
-//     loginCount: {
-//       type: Number,
-//       default: 0
-//     }
-// },{
-//     timestamps: true 
-// })
-
-// const ClientUser = mongoose.model("client-users", clientUserSchema)
-// module.exports = ClientUser
-
-
 const { DataTypes } = require("sequelize");
 const sequelize = require("../database/index")
 // Model definition
@@ -70,6 +21,36 @@ const ClientUser = sequelize.define('client-users', {
     allowNull: true
   },
   profile_image: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  likes_update_post:{
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: [],
+  },
+  saves_update_post:{
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: [],
+  },
+  login_system: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  portfolio: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  location: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  interest: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  bio: {
     type: DataTypes.STRING,
     allowNull: true
   },

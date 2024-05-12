@@ -1,32 +1,3 @@
-// const mongoose = require("mongoose")
-
-// const updatePostSchema = mongoose.Schema({
-//     package_name:{
-//       type: String,
-//       required: "Your package name is required",
-//     },
-//     version:{
-//       type: String,
-//       required: "Your version is required",
-//     },
-//     details:{
-//       type: String,
-//       required: true,
-//     },
-//     image:{
-//       type: String,
-//       required: true
-//     }
-// },{
-//     timestamps: true 
-// })
-
-// const UpdatePost = mongoose.model("update-post", updatePostSchema)
-// module.exports = UpdatePost
-
-
-
-
 const { DataTypes } = require("sequelize");
 const sequelize = require("../database/index")
 // Model definition
@@ -47,6 +18,21 @@ const UpdatePost = sequelize.define('update-post', {
     type: DataTypes.STRING,
     allowNull: false
   },
+  author: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: "",
+  },
+  likes_user_id:{
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: [],
+  },
+  saves_user_id:{
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: [],
+  }
 },
 {
   sequelize,

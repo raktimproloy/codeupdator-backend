@@ -55,14 +55,9 @@ router.post("/signup", hashPassword, async (req, res) => {
       username,
       email,
       password: hashedPassword,
+      login_system: "manually"
     };
 
-    // Create a new AdminUser instance
-    // const newUser = new ClientUser(newAdminUser);
-    
-    // Save the new user to the database
-    // await newUser
-    //   .save()
     await ClientUser.create(newAdminUser)
       .then((result) => {
         const token = jwt.sign({ 
@@ -137,6 +132,7 @@ router.post("/google/login", async (req, res) => {
         username: createdUsername,
         email,
         profile_image,
+        login_system: "google"
       };
   
       // Create a new AdminUser instance
@@ -209,6 +205,43 @@ router.post("/login", async (req, res) => {
     res.status(401).json({ error: "Authentication error!" });
   }
 })
+
+router.get("/get/:id", authenticateJWT, async (req, res) => {
+  const clientUserData = await ClientUser.findOne({ where: { id: req.params.id } });
+  if(clientUserData){
+    // Exclude the 'password' field from the response
+    const { password, updatedAt, ...userDataWithoutPassword } = clientUserData.toJSON();
+    res.status(200).json({
+      data: userDataWithoutPassword
+    });
+  }else{
+    res.status(401).json({ error: "Authentication error!" });
+  }
+})
+
+router.put("/update/:id", authenticateJWT, async (req, res) => {
+  try{
+    const clientData = await ClientUser.findOne({ where: { id: req.params.id } });
+    const result = await ClientUser.update(
+      { ...req.body, likes_update_post: JSON.parse(clientData.likes_update_post) },
+      {
+        where: {
+          id: req.params.id
+        },
+      },
+    );
+
+    if (!result) {
+      res.status(404).send({ error: "Page not found" });
+    } else {
+      res.status(200).send(result);
+    }
+  }
+  catch(err){
+    res.status(500).send("internal server error")
+  }
+})
+
 
 // Export the router for use in other files
 module.exports = router;

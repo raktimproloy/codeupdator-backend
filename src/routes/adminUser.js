@@ -83,7 +83,7 @@ router.post("/login", async (req, res) => {
     bcrypt.compare(password, adminUserData.password, function(err, result) {
       if (result) {
         const token = jwt.sign({ 
-          id: adminUserData._id, 
+          id: adminUserData.id, 
           first_name: adminUserData.first_name,
           last_name: adminUserData.last_name,
           email: adminUserData.email,

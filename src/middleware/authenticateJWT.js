@@ -17,7 +17,6 @@ const authenticateJWT = (req, res, next) => {
         const currentTimestamp = Math.floor(Date.now() / 1000);
         if (exp && exp > currentTimestamp) {
             req.user = decoded;
-            console.log(decoded)
             next();
         }else{
             res.status(401).json({ error: 'Authentication failed' });

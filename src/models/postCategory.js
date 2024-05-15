@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../database/index")
 // Model definition
-const UpdatePost = sequelize.define('update-post', {
+const postCategory = sequelize.define('post-category', {
   title: {
     type: DataTypes.STRING,
     allowNull: false
@@ -10,41 +10,37 @@ const UpdatePost = sequelize.define('update-post', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  version: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
   details: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true
   },
-  image: {
+  logo: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true
   },
-  author: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    defaultValue: "",
-  },
-  date: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    defaultValue: "",
-  },
-  likes_user_id:{
+  version: {
     type: DataTypes.JSON,
     allowNull: true,
     defaultValue: [],
   },
-  saves_user_id:{
+  posts_id:{
     type: DataTypes.JSON,
     allowNull: true,
     defaultValue: [],
-  }
+  },
+  interest_user_id:{
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: [],
+  },
+  interest_count:{
+    type: DataTypes.NUMBER,
+    allowNull: true,
+    defaultValue: 0,
+  },
 },
 {
   sequelize,
 });
 
-module.exports = UpdatePost
+module.exports = postCategory

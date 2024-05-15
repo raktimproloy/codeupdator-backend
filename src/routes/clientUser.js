@@ -223,7 +223,7 @@ router.put("/update/:id", authenticateJWT, async (req, res) => {
   try{
     const clientData = await ClientUser.findOne({ where: { id: req.params.id } });
     const result = await ClientUser.update(
-      { ...req.body, likes_update_post: JSON.parse(clientData.likes_update_post) },
+      { ...req.body, likes_update_post: JSON.parse(clientData.likes_update_post), saves_update_post: JSON.parse(clientData.likes_update_post) },
       {
         where: {
           id: req.params.id

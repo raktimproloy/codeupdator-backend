@@ -10,6 +10,7 @@ const cookieSession = require("cookie-session");
 const adminUserHandler = require("./src/routes/adminUser")
 const clientUserHandler = require("./src/routes/clientUser")
 const updatePostHandler = require("./src/routes/updatePost")
+const postCategoryHandler = require("./src/routes/postCategory")
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use("/admin-user", adminUserHandler)
 app.use("/user", clientUserHandler)
 
 app.use("/update-post", updatePostHandler)
+app.use("/post-category", postCategoryHandler)
 
 // custom 404
 app.use((req, res, next) => {

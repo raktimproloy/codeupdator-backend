@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 const { Sequelize, DataTypes } = require("sequelize");
 // jwt create data
 const jwt = require('jsonwebtoken');
@@ -14,16 +14,16 @@ const removeValueFromArray = require("../utils/removeValueFromArray")
 router.post("/post", authenticateJWT, async (req, res) => {
   try {
     // Destructuring user input from request body
-    const { package_name, version, details, image, date, author } = req.body;
+    const { package_name, version, details, image, date, author, title } = req.body;
 
     // Input validation
     if (!package_name || !version || !details || !image) {
       return res.status(400).json({ error: "Invalid requirement" });
     }
 
-
     // Create a new AdminUser object with validated data
     const newUpdatePost = {
+        title,
         package_name,
         version,
         details,
@@ -34,26 +34,7 @@ router.post("/post", authenticateJWT, async (req, res) => {
     console.log(newUpdatePost)
 
     const newPost = await UpdatePost.create(newUpdatePost);
-    res.send({message: 'New Update Post Posted Successfull'});
-    // // Create a new AdminUser instance
-    // const newPost = new UpdatePost(newUpdatePost);
-
-    // // Save the new user to the database
-    // await newPost
-    //   .save()
-    //   .then((result) => {
-    //     // Successful signup response
-    //     res.status(200).json({
-    //       message: "New Update Post Posted Successfull",
-    //     });
-    //   })
-    //   .catch((err) => {
-    //     // Handle database save error
-    //     console.error(err);
-    //     res.status(500).send({
-    //       error: err.message,
-    //     });
-    //   });
+    res.send({message: 'New Update Post Posted Successfull', id:newPost.id});
   } catch (error) {
     // Handle unexpected errors
     console.error(error);
@@ -84,6 +65,19 @@ router.get("/get", async (req, res) => {
     res.status(500).send("internal server error")
   }
 })
+
+// router.get("/category/:slug", async (req, res) => {
+//   try {
+//     const posts = await UpdatePost.findAll({
+//       where: { package_name: req.params.slug },
+//       order: [['id', 'DESC']]
+//     });
+//     res.status(200).send(posts);
+//   } catch (err) {
+//     console.error(err); // Log the error for debugging
+//     res.status(500).send("Internal server error");
+//   }
+// });
 
 
 router.put("/update/:id", authenticateJWT, async (req, res) => {
@@ -152,7 +146,26 @@ router.put("/like/:id", authenticateJWT, async (req, res) => {
       likes_user_id = removeValueFromArray(likes_user_id, user_id.toString());
     }
     
-    const updateUser = await ClientUser.update(
+    // const updateUser = await ClientUser.update(
+    //   { likes_update_post: likes_update_post },
+    //   {
+    //     where: {
+    //       id: user_id
+    //     },
+    //   },
+    // );
+
+    // const updatePost = await UpdatePost.update(
+    //   { likes_user_id: likes_user_id },
+    //   {
+    //     where: {
+    //       id: post_id
+    //     },
+    //   },
+    // );
+
+
+    const [updateUserCount] = await ClientUser.update(
       { likes_update_post: likes_update_post },
       {
         where: {
@@ -160,6 +173,9 @@ router.put("/like/:id", authenticateJWT, async (req, res) => {
         },
       },
     );
+
+    // Fetch the updated user separately
+    const updatedUser = await ClientUser.findOne({ where: { id: user_id } });
 
     const updatePost = await UpdatePost.update(
       { likes_user_id: likes_user_id },
@@ -169,12 +185,10 @@ router.put("/like/:id", authenticateJWT, async (req, res) => {
         },
       },
     );
-
-
-    if (!updateUser || !updatePost) {
+    if (!updateUserCount || !updatePost) {
       res.status(404).send({ error: "Page not found" });
     } else {
-      res.status(200).send({message:"Post Liked Successful!"});
+      res.status(200).json({message:"Post Liked Successful!", ids: updatedUser.likes_update_post });
     }
   }
   catch(err){
@@ -203,7 +217,6 @@ router.put("/save/:id", authenticateJWT, async (req, res) => {
       saves_update_post = removeValueFromArray(saves_update_post, post_id.toString());
       saves_user_id = removeValueFromArray(saves_user_id, user_id.toString());
     }
-
     const [updateUserCount] = await ClientUser.update(
       { saves_update_post: saves_update_post },
       {

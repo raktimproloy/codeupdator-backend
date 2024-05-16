@@ -14,8 +14,8 @@ const removeValueFromArray = require("../utils/removeValueFromArray")
 router.post("/post", authenticateJWT, async (req, res) => {
   try {
     // Destructuring user input from request body
-    const { package_name, version, details, image, date, author, title } = req.body;
-
+    const { package_name, version, details, image, date, author, title, status } = req.body;
+    console.log(status)
     // Input validation
     if (!package_name || !version || !details || !image) {
       return res.status(400).json({ error: "Invalid requirement" });
@@ -27,6 +27,7 @@ router.post("/post", authenticateJWT, async (req, res) => {
         package_name,
         version,
         details,
+        status,
         image,
         date,
         author
@@ -145,26 +146,6 @@ router.put("/like/:id", authenticateJWT, async (req, res) => {
       likes_update_post = removeValueFromArray(likes_update_post, post_id.toString());
       likes_user_id = removeValueFromArray(likes_user_id, user_id.toString());
     }
-    
-    // const updateUser = await ClientUser.update(
-    //   { likes_update_post: likes_update_post },
-    //   {
-    //     where: {
-    //       id: user_id
-    //     },
-    //   },
-    // );
-
-    // const updatePost = await UpdatePost.update(
-    //   { likes_user_id: likes_user_id },
-    //   {
-    //     where: {
-    //       id: post_id
-    //     },
-    //   },
-    // );
-
-
     const [updateUserCount] = await ClientUser.update(
       { likes_update_post: likes_update_post },
       {

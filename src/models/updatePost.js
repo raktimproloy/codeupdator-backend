@@ -27,6 +27,11 @@ const UpdatePost = sequelize.define('update-post', {
     allowNull: true,
     defaultValue: "",
   },
+  status:{
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: "draft",
+  },
   date: {
     type: DataTypes.STRING,
     allowNull: true,

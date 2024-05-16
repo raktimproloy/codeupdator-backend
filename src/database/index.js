@@ -9,7 +9,8 @@ const password = process.env.DATABASE_PASSWORD
 const port = process.env.DATABASE_PORT
 
 const sequelize = new Sequelize('codessta_main', user, password, {
-  host: 'localhost', // Remove the port number from here
+  // host: 'localhost', 
+  host: '104.152.168.205', 
   port: port, // Include the port separately
   dialect: 'mysql',
 });

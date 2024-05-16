@@ -104,7 +104,46 @@ router.put("/update", authenticateJWT, async (req, res) => {
   }
 });
 
+router.put("/interest", authenticateJWT, async (req, res) => {
+  try {
+    const { user_id, remove_interest, add_interest } = req.body;
 
+    // Fetch categories for removal
+    const categoriesToRemove = await postCategory.findAll({ where: { package_name: remove_interest } });
 
-// Export the router for use in other files
+    // Fetch categories for addition
+    const categoriesToAdd = await postCategory.findAll({ where: { package_name: add_interest } });
+
+    // Update interest counts and user ids for categories to remove
+    for (const category of categoriesToRemove) {
+      let interest_user_id = JSON.parse(category.interest_user_id);
+      const index = interest_user_id.indexOf(user_id.toString());
+      if (index !== -1) {
+        interest_user_id.splice(index, 1);
+        await postCategory.update(
+          { interest_user_id: interest_user_id, interest_count: interest_user_id.length },
+          { where: { id: category.id } }
+        );
+      }
+    }
+
+    // Update interest counts and user ids for categories to add
+    for (const category of categoriesToAdd) {
+      let interest_user_id = JSON.parse(category.interest_user_id);
+      if (!interest_user_id.includes(user_id.toString())) {
+        interest_user_id.push(user_id.toString());
+        await postCategory.update(
+          { interest_user_id: interest_user_id, interest_count: interest_user_id.length },
+          { where: { id: category.id } }
+        );
+      }
+    }
+
+    res.status(200).json({ message: "Interests updated successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Internal server error");
+  }
+});
+
 module.exports = router;

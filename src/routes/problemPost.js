@@ -8,34 +8,47 @@ const secretKey = process.env.JWT_SECRET_KEY;
 const authenticateJWT = require("../middleware/authenticateJWT")
 const UpdatePost = require("../models/updatePost")
 const ClientUser = require("../models/clientUser");
+const ProblemPost = require("../models/problemPost");
 const removeValueFromArray = require("../utils/removeValueFromArray")
 
 // Route for user signup
 router.post("/post", authenticateJWT, async (req, res) => {
   try {
     // Destructuring user input from request body
-    const { package_name, version, details, image, date, author, title, status } = req.body;
-    console.log(status)
+    const { packages, details, image, date, author, status } = req.body;
     // Input validation
-    if (!package_name || !version || !details || !image) {
+    if (!details) {
       return res.status(400).json({ error: "Invalid requirement" });
     }
 
+    const user = await ClientUser.findOne({ where: { id: author } });
+    let problem_posts = JSON.parse(user.problem_posts_id)
+
     // Create a new AdminUser object with validated data
-    const newUpdatePost = {
-        title,
-        package_name,
-        version,
+    const newProblemPost = {
+        packages,
         details,
         status,
         image,
         date,
         author
     };
-    console.log(newUpdatePost)
 
-    const newPost = await UpdatePost.create(newUpdatePost);
-    res.send({message: 'New Update Post Posted Successfull', id:newPost.id});
+    const newProblem = await ProblemPost.create(newProblemPost);
+    console.log(newProblem.id)
+    if(!problem_posts.includes(newProblem.id.toString())){
+      problem_posts.push(newProblem.id.toString())
+    }
+
+    const [updateUserCount] = await ClientUser.update(
+      { problem_posts_id: problem_posts },
+      {
+        where: {
+          id: author
+        },
+      },
+    );
+    res.send({message: 'New Problem Post Posted Successfull', id:newProblem.id});
   } catch (error) {
     // Handle unexpected errors
     console.error(error);
@@ -47,7 +60,7 @@ router.post("/post", authenticateJWT, async (req, res) => {
 
 router.get("/get/:id", authenticateJWT, async (req, res) => {
   try{
-    const post = await UpdatePost.findOne({ where: { id: req.params.id } });
+    const post = await ProblemPost.findOne({ where: { id: req.params.id } });
       res.status(200).send(post);
   }
   catch(err){
@@ -61,38 +74,43 @@ router.get("/:page", async (req, res) => {
     const page = parseInt(req.params.page);
     const pageSize = 30; // Number of records per page
 
+    if (isNaN(page) || page < 1) {
+      return res.status(400).send("Invalid page number");
+    }
+
     // Calculate the offset based on the page number and page size
     const offset = (page - 1) * pageSize;
 
     // Fetch records using pagination
-    const posts = await UpdatePost.findAll({
+    const posts = await ProblemPost.findAll({
       order: [['id', 'DESC']],
       limit: pageSize,
       offset: offset
     });
 
+    if (posts.length === 0) {
+      return res.status(200).send([]);
+    }
+
+    // Use Promise.all to handle async operations in parallel
+    const updatedPosts = await Promise.all(posts.map(async (post) => {
+      const user = await ClientUser.findOne({ where: { id: post.author } });
+
+      return {
+        ...post.get(), // Convert the Sequelize instance to a plain object
+        author_image: user ? user.profile_image : null,
+        author_name: user ? user.full_name : null,
+        author_username: user ? user.username : null
+      };
+    }));
+
     // Sending the response
-    res.status(200).send(posts);
-  } catch(err) {
+    res.status(200).send(updatedPosts);
+  } catch (err) {
+    console.error(err);
     res.status(500).send("Internal server error");
   }
 });
-
-
-
-// router.get("/category/:slug", async (req, res) => {
-//   try {
-//     const posts = await UpdatePost.findAll({
-//       where: { package_name: req.params.slug },
-//       order: [['id', 'DESC']]
-//     });
-//     res.status(200).send(posts);
-//   } catch (err) {
-//     console.error(err); // Log the error for debugging
-//     res.status(500).send("Internal server error");
-//   }
-// });
-
 
 router.put("/update/:id", authenticateJWT, async (req, res) => {
   try{
@@ -142,25 +160,25 @@ router.delete("/delete/:id", authenticateJWT, async (req, res) => {
 router.put("/like/:id", authenticateJWT, async (req, res) => {
   try{
     const {post_id, user_id, like_status} = req.body
-    const post = await UpdatePost.findOne({ where: { id: post_id } });
+    const post = await ProblemPost.findOne({ where: { id: post_id } });
     const user = await ClientUser.findOne({ where: { id: user_id } });
 
-    let likes_update_post = JSON.parse(user.likes_update_post)
+    let likes_problem_post = JSON.parse(user.likes_problem_post)
     let likes_user_id = JSON.parse(post.likes_user_id)
 
     if(like_status){
-      if(!likes_update_post.includes(post_id.toString())){
-        likes_update_post.push(post_id.toString())
+      if(!likes_problem_post.includes(post_id.toString())){
+        likes_problem_post.push(post_id.toString())
       }
       if(!likes_user_id.includes(user_id.toString())){
         likes_user_id.push(user_id.toString())
       }
     }else{
-      likes_update_post = removeValueFromArray(likes_update_post, post_id.toString());
+      likes_problem_post = removeValueFromArray(likes_problem_post, post_id.toString());
       likes_user_id = removeValueFromArray(likes_user_id, user_id.toString());
     }
     const [updateUserCount] = await ClientUser.update(
-      { likes_update_post: likes_update_post },
+      { likes_problem_post: likes_problem_post },
       {
         where: {
           id: user_id
@@ -171,7 +189,7 @@ router.put("/like/:id", authenticateJWT, async (req, res) => {
     // Fetch the updated user separately
     const updatedUser = await ClientUser.findOne({ where: { id: user_id } });
 
-    const updatePost = await UpdatePost.update(
+    const updatePost = await ProblemPost.update(
       { likes_user_id: likes_user_id },
       {
         where: {
@@ -182,7 +200,7 @@ router.put("/like/:id", authenticateJWT, async (req, res) => {
     if (!updateUserCount || !updatePost) {
       res.status(404).send({ error: "Page not found" });
     } else {
-      res.status(200).json({message:"Post Liked Successful!", ids: updatedUser.likes_update_post });
+      res.status(200).json({message:"Post Liked Successful!", ids: updatedUser.likes_problem_post });
     }
   }
   catch(err){
@@ -194,25 +212,25 @@ router.put("/like/:id", authenticateJWT, async (req, res) => {
 router.put("/save/:id", authenticateJWT, async (req, res) => {
   try {
     const { post_id, user_id, save_status } = req.body;
-    const post = await UpdatePost.findOne({ where: { id: post_id } });
+    const post = await ProblemPost.findOne({ where: { id: post_id } });
     const user = await ClientUser.findOne({ where: { id: user_id } });
 
-    let saves_update_post = JSON.parse(user.saves_update_post);
+    let saves_problem_post = JSON.parse(user.saves_problem_post);
     let saves_user_id = JSON.parse(post.saves_user_id);
 
     if (save_status) {
-      if (!saves_update_post.includes(post_id.toString())) {
-        saves_update_post.push(post_id.toString());
+      if (!saves_problem_post.includes(post_id.toString())) {
+        saves_problem_post.push(post_id.toString());
       }
       if (!saves_user_id.includes(user_id.toString())) {
         saves_user_id.push(user_id.toString());
       }
     } else {
-      saves_update_post = removeValueFromArray(saves_update_post, post_id.toString());
+      saves_problem_post = removeValueFromArray(saves_problem_post, post_id.toString());
       saves_user_id = removeValueFromArray(saves_user_id, user_id.toString());
     }
     const [updateUserCount] = await ClientUser.update(
-      { saves_update_post: saves_update_post },
+      { saves_problem_post: saves_problem_post },
       {
         where: {
           id: user_id
@@ -223,7 +241,7 @@ router.put("/save/:id", authenticateJWT, async (req, res) => {
     // Fetch the updated user separately
     const updatedUser = await ClientUser.findOne({ where: { id: user_id } });
 
-    const updatePost = await UpdatePost.update(
+    const updatePost = await ProblemPost.update(
       { saves_user_id: saves_user_id },
       {
         where: {
@@ -235,15 +253,13 @@ router.put("/save/:id", authenticateJWT, async (req, res) => {
     if (!updatedUser || !updatePost) {
       res.status(404).send({ error: "Page not found" });
     } else {
-      res.status(200).json({ message: "Post Save Successful!", ids: updatedUser.saves_update_post });
+      res.status(200).json({ message: "Post Save Successful!", ids: updatedUser.saves_problem_post });
     }
   } catch (err) {
     console.log(err);
     res.status(500).send("internal server error");
   }
 });
-
-
 
 router.post("/get/saved/posts", async (req, res) => {
   try {

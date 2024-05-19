@@ -34,6 +34,21 @@ const ClientUser = sequelize.define('client-users', {
     allowNull: true,
     defaultValue: [],
   },
+  problem_posts_id:{
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: [],
+  },
+  saves_problem_post:{
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: [],
+  },
+  likes_problem_post:{
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: [],
+  },
   login_system: {
     type: DataTypes.STRING,
     allowNull: true

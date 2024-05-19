@@ -242,6 +242,19 @@ router.put("/update/:id", authenticateJWT, async (req, res) => {
   }
 })
 
+router.get("/author/:id", async (req, res) => {
+  const clientUserData = await ClientUser.findOne({ where: { id: req.params.id } });
+  if(clientUserData){
+    // Exclude the 'password' field from the response
+    const { password, updatedAt, isDark, loginCount, likes_update_post, saves_update_post, problem_posts_id, likes_problem_post, saves_problem_post, login_system, portfolio, location, bio, interest,  ...userDataWithoutPassword } = clientUserData.toJSON();
+    res.status(200).json({
+      data: userDataWithoutPassword
+    });
+  }else{
+    res.status(401).json({ error: "Authentication error!" });
+  }
+})
+
 
 // Export the router for use in other files
 module.exports = router;

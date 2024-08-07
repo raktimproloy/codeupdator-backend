@@ -16,24 +16,28 @@ router.get("/get/:package", async (req, res) => {
     // Find the category based on package_name
     const category = await postCategory.findOne({ where: { package_name: req.params.package } });
     
-    // Parsing JSON string to array
-    const categoryPostsId = JSON.parse(category.posts_id);
-    console.log(categoryPostsId);
-    
-    // Fetching posts based on IDs
-    const posts = await UpdatePost.findAll({
-      where: { id: categoryPostsId },
-      order: [['id', 'DESC']]
-    });
-
-    // Constructing response data
-    const responseData = {
-      category: category,
-      posts: posts
-    };
-
-    // Sending response
-    res.status(200).json({ data: responseData });
+    if(category){
+      // Parsing JSON string to array
+      const categoryPostsId = JSON.parse(category.posts_id);
+      console.log(categoryPostsId);
+      
+      // Fetching posts based on IDs
+      const posts = await UpdatePost.findAll({
+        where: { id: categoryPostsId },
+        order: [['id', 'DESC']]
+      });
+  
+      // Constructing response data
+      const responseData = {
+        category: category,
+        posts: posts
+      };
+  
+      // Sending response
+      res.status(200).json({ data: responseData });
+    }else{
+      res.status(404).send({message: "No Post Found!"});
+    }
   } catch(err) {
     console.error(err);
     res.status(500).send("Internal server error");

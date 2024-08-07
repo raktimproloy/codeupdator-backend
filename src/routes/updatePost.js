@@ -74,6 +74,7 @@ router.get("/:page", async (req, res) => {
     // Sending the response
     res.status(200).send(posts);
   } catch(err) {
+    console.log(err)
     res.status(500).send("Internal server error");
   }
 });
@@ -144,6 +145,7 @@ router.put("/like/:id", authenticateJWT, async (req, res) => {
     const {post_id, user_id, like_status} = req.body
     const post = await UpdatePost.findOne({ where: { id: post_id } });
     const user = await ClientUser.findOne({ where: { id: user_id } });
+    console.log({post_id, user_id, like_status})
 
     let likes_update_post = JSON.parse(user.likes_update_post)
     let likes_user_id = JSON.parse(post.likes_user_id)

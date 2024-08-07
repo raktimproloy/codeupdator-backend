@@ -12,6 +12,9 @@ const clientUserHandler = require("./src/routes/clientUser")
 const updatePostHandler = require("./src/routes/updatePost")
 const postCategoryHandler = require("./src/routes/postCategory")
 const problemPostHandler = require("./src/routes/problemPost")
+const settingHandler = require("./src/routes/setting")
+const packageHandler = require("./src/routes/package")
+// const initialize = require("./src/utils/initialize")
 
 const app = express();
 
@@ -48,6 +51,8 @@ app.use("/user", clientUserHandler)
 app.use("/update-post", updatePostHandler)
 app.use("/post-category", postCategoryHandler)
 app.use("/problem-post", problemPostHandler)
+app.use("/setting", settingHandler)
+app.use("/package", packageHandler)
 
 // custom 404
 app.use((req, res, next) => {

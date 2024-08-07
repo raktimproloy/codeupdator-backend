@@ -206,6 +206,50 @@ router.post("/login", async (req, res) => {
   }
 })
 
+router.post("/point/get/:page", async (req, res) => {
+  const page = parseInt(req.params.page) || 1; // Default to page 1 if not provided
+  const { limit = 10, username, location } = req.body; // Get limit, username, and location from request body
+  const offset = (page - 1) * limit; // Calculate offset
+
+  try {
+    // Build the query filters
+    const filters = {};
+    if (username) {
+      filters.username = username;
+    }
+    if (location) {
+      filters.location = location;
+    }
+
+    const clientUserData = await ClientUser.findAll({
+      where: filters, // Apply filters
+      order: [['point', 'DESC']], // Order by 'point' in descending order
+      limit: limit, // Limit the results to the specified number of records per page
+      offset: offset // Offset the results for pagination
+    });
+
+    if (clientUserData) {
+      // Map through the results to exclude the 'password' and 'updatedAt' fields
+      const users = clientUserData.map(user => {
+        const { password, updatedAt, ...userDataWithoutPassword } = user.toJSON();
+        return userDataWithoutPassword;
+      });
+
+      res.status(200).json({
+        data: users,
+        currentPage: page,
+        totalPages: Math.ceil(await ClientUser.count({ where: filters }) / limit) // Calculate total pages
+      });
+    } else {
+      res.status(404).json({ error: "No users found!" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error!" });
+  }
+});
+
+
 router.get("/get/:id", authenticateJWT, async (req, res) => {
   const clientUserData = await ClientUser.findOne({ where: { id: req.params.id } });
   if(clientUserData){

@@ -2,6 +2,11 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../database/index")
 // Model definition
 const AdminUser = sequelize.define('admin-users', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   first_name: {
     type: DataTypes.STRING,
     allowNull: false

@@ -2,11 +2,36 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../database/index"); // Adjust the path to your sequelize instance
 
-const ProblemPost = sequelize.define('problem-post', {
+const Setting = sequelize.define('setting', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
+  },
+  site_name: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  site_logo: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  site_favicon: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  navbar:{
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: [],
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  phone: {
+    type: DataTypes.STRING,
+    allowNull: true,
   },
   packages: {
     type: DataTypes.JSON,
@@ -18,39 +43,8 @@ const ProblemPost = sequelize.define('problem-post', {
     allowNull: true,
     defaultValue: "draft",
   },
-  details: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  image: {
-    type: DataTypes.JSON,
-    allowNull: true,
-    defaultValue: [],
-  },
-  author: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: 'client-users',
-      key: 'id',
-    },
-  },
-  date: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    defaultValue: "",
-  },
-  likes_user_id: {
-    type: DataTypes.JSON,
-    allowNull: true,
-    defaultValue: [],
-  },
-  saves_user_id: {
-    type: DataTypes.JSON,
-    allowNull: true,
-    defaultValue: [],
-  }
 }, {
   sequelize,
 });
 
-module.exports = ProblemPost;
+module.exports = Setting;

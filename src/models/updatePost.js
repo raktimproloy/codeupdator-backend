@@ -2,6 +2,11 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../database/index")
 // Model definition
 const UpdatePost = sequelize.define('update-post', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   title: {
     type: DataTypes.STRING,
     allowNull: false

@@ -7,50 +7,63 @@ const jwt = require('jsonwebtoken');
 const secretKey = process.env.JWT_SECRET_KEY;
 const authenticateJWT = require("../middleware/authenticateJWT")
 const UpdatePost = require("../models/updatePost")
-const ClientUser = require("../models/clientUser");
-const ProblemPost = require("../models/problemPost");
+// const ClientUser = require("../models/clientUser");
+// const ProblemPost = require("../models/problemPost");
+const { ClientUser, ProblemPost } = require('../models/sequelize');
 const removeValueFromArray = require("../utils/removeValueFromArray")
 
-// Route for user signup
 router.post("/post", authenticateJWT, async (req, res) => {
   try {
-    // Destructuring user input from request body
     const { packages, details, image, date, author, status } = req.body;
-    // Input validation
+
+    console.log(req.body);
+
     if (!details) {
       return res.status(400).json({ error: "Invalid requirement" });
     }
 
     const user = await ClientUser.findOne({ where: { id: author } });
-    let problem_posts = JSON.parse(user.problem_posts_id)
+    if (!user) {
+      return res.status(404).json({ error: "Author not found" });
+    }
 
-    // Create a new AdminUser object with validated data
+    let problem_posts = JSON.parse(user.problem_posts_id) || [];
+
     const newProblemPost = {
-        packages,
-        details,
-        status,
-        image,
-        date,
-        author
+      packages,
+      details,
+      status,
+      image,
+      date,
+      author: user.id,
     };
 
     const newProblem = await ProblemPost.create(newProblemPost);
-    console.log(newProblem.id)
-    if(!problem_posts.includes(newProblem.id.toString())){
-      problem_posts.push(newProblem.id.toString())
+    console.log(newProblem.id);
+
+    if (!problem_posts.includes(newProblem.id.toString())) {
+      problem_posts.push(newProblem.id.toString());
     }
 
-    const [updateUserCount] = await ClientUser.update(
+    await ClientUser.update(
       { problem_posts_id: problem_posts },
-      {
-        where: {
-          id: author
-        },
-      },
+      { where: { id: author } }
     );
-    res.send({message: 'New Problem Post Posted Successfull', id:newProblem.id});
+
+    const createdProblemPost = await ProblemPost.findOne({
+      where: { id: newProblem.id },
+      include: [{
+        model: ClientUser,
+        as: 'authorDetails',
+        attributes: ['full_name', 'username', 'profile_image'] // Limit the fields here
+      }],
+    });
+
+    res.status(201).send({
+      message: 'New Problem Post Posted Successfully',
+      post: createdProblemPost,
+    });
   } catch (error) {
-    // Handle unexpected errors
     console.error(error);
     res.status(500).send({
       error: error.message,
@@ -85,7 +98,12 @@ router.get("/:page", async (req, res) => {
     const posts = await ProblemPost.findAll({
       order: [['id', 'DESC']],
       limit: pageSize,
-      offset: offset
+      offset: offset,
+      include: [{
+        model: ClientUser,
+        as: 'authorDetails',
+        attributes: ['full_name', 'username', 'profile_image'] // Limit the fields here
+      }],
     });
 
     if (posts.length === 0) {
@@ -93,19 +111,20 @@ router.get("/:page", async (req, res) => {
     }
 
     // Use Promise.all to handle async operations in parallel
-    const updatedPosts = await Promise.all(posts.map(async (post) => {
-      const user = await ClientUser.findOne({ where: { id: post.author } });
+    // const updatedPosts = await Promise.all(posts.map(async (post) => {
+    //   const user = await ClientUser.findOne({ where: { id: post.author } });
 
-      return {
-        ...post.get(), // Convert the Sequelize instance to a plain object
-        author_image: user ? user.profile_image : null,
-        author_name: user ? user.full_name : null,
-        author_username: user ? user.username : null
-      };
-    }));
+    //   return {
+    //     ...post.get(), // Convert the Sequelize instance to a plain object
+    //     author_image: user ? user.profile_image : null,
+    //     author_name: user ? user.full_name : null,
+    //     author_username: user ? user.username : null
+    //   };
+    // }));
 
     // Sending the response
-    res.status(200).send(updatedPosts);
+    // res.status(200).send(updatedPosts);
+    res.status(200).send(posts);
   } catch (err) {
     console.error(err);
     res.status(500).send("Internal server error");

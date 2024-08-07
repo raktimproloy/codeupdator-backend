@@ -43,28 +43,7 @@ router.post("/signup", hashPassword, async (req, res) => {
     };
 
   const newUser = await AdminUser.create(newAdminUser);
-  // console.log(jane.toJSON());
   res.send({message: 'User added successfully', data: newUser});
-    // // Create a new AdminUser instance
-    // const newUser = new AdminUser(newAdminUser);
-
-    // // Save the new user to the database
-    // await newUser
-    //   .save()
-    //   .then((result) => {
-    //     // Successful signup response
-    //     res.status(200).json({
-    //       message: "Signup Successful",
-    //       userId: result._id,
-    //     });
-    //   })
-    //   .catch((err) => {
-    //     // Handle database save error
-    //     console.error(err);
-    //     res.status(500).send({
-    //       error: err.message,
-    //     });
-    //   });
   } catch (error) {
     // Handle unexpected errors
     console.error(error);

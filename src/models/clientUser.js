@@ -1,7 +1,12 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../database/index")
 // Model definition
-const ClientUser = sequelize.define('client-users', {
+const ClientUser = sequelize.define('client-user', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   full_name: {
     type: DataTypes.STRING,
     allowNull: false
@@ -34,7 +39,7 @@ const ClientUser = sequelize.define('client-users', {
     allowNull: true,
     defaultValue: [],
   },
-  problem_posts_id:{
+  problem_posts_id: {
     type: DataTypes.JSON,
     allowNull: true,
     defaultValue: [],
@@ -75,6 +80,10 @@ const ClientUser = sequelize.define('client-users', {
     defaultValue: false,
   },
   loginCount: {
+    type: DataTypes.NUMBER,
+    allowNull: true
+  },
+  point: {
     type: DataTypes.NUMBER,
     allowNull: true
   },
